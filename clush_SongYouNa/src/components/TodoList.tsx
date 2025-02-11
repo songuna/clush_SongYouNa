@@ -1,52 +1,46 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { DatePicker } from "antd"; // DatePicker import
+import { DatePicker } from "antd";
 import type { Dayjs } from "dayjs";
-import moment from "moment"; // DatePicker에 필요한 moment 사용
+import moment from "moment";
 import { IoIosClose } from "react-icons/io";
 
 interface ToDo {
   id: number;
   text: string;
   completed: boolean;
-  date: string; // 날짜 속성 추가
+  date: string;
 }
 
 const ToDoList: React.FC = () => {
   const [todos, setTodos] = useState<ToDo[]>(JSON.parse(localStorage.getItem("todos") || "[]"));
   const [input, setInput] = useState("");
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState(""); // 에러 메시지 상태 추가
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
   }, [todos]);
 
   const addTodo = () => {
-    if (!selectedDate && !input.trim()) {
-      setErrorMessage("날짜와 할 일을 입력해주세요");
+    if (!selectedDate || !input.trim()) {
+      setErrorMessage(
+        !selectedDate && !input.trim()
+          ? "날짜와 할 일을 입력해주세요"
+          : !selectedDate
+          ? "날짜를 선택해 주세요"
+          : "할 일을 입력해주세요"
+      );
       return;
     }
-    if (!selectedDate) {
-      setErrorMessage("날짜를 선택해 주세요");
-      return;
-    }
-    if (!input.trim()) {
-      setErrorMessage("할 일을 입력해주세요");
-      return;
-    }
-    
+
     setTodos([...todos, { id: Date.now(), text: input, completed: false, date: selectedDate }]);
     setInput("");
-    setErrorMessage(""); // 에러 메시지 초기화
+    setErrorMessage("");
   };
 
   const toggleTodo = (id: number) => {
-    setTodos(
-      todos.map(todo =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
+    setTodos(todos.map(todo => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)));
   };
 
   const deleteTodo = (id: number) => {
@@ -54,26 +48,23 @@ const ToDoList: React.FC = () => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      addTodo();
-    }
+    if (e.key === "Enter") addTodo();
   };
 
   const onDateSelect = (date: Dayjs | null) => {
     if (date) {
       setSelectedDate(date.format("YYYY-MM-DD"));
-      setErrorMessage(""); // 날짜 선택 시 에러 메시지 제거
+      setErrorMessage("");
     }
   };
 
-  const today = new Date();
-  const dateString = today.toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0];
   const filteredTodos = todos.filter(todo => todo.date === selectedDate);
 
   return (
     <Container>
       <h2>To-Do List</h2>
-      <DateDisplay>{`Today : ${dateString}`}</DateDisplay>
+      <DateDisplay>{`Today : ${today}`}</DateDisplay>
       <SelectedDateDisplay>{`Select Day : ${selectedDate}`}</SelectedDateDisplay>
       <DatePickerContainer>
         <DatePickerStyled
@@ -92,7 +83,7 @@ const ToDoList: React.FC = () => {
         />
         <AddButton onClick={addTodo}>추가</AddButton>
       </InputContainer>
-      {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>} {/* 에러 메시지 표시 */}
+      {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       <TodoList>
         {filteredTodos.map(todo => (
           <ListItem key={todo.id} completed={todo.completed}>
@@ -103,7 +94,9 @@ const ToDoList: React.FC = () => {
               onChange={() => toggleTodo(todo.id)}
             />
             <span>{todo.text}</span>
-            <DeleteButton onClick={() => deleteTodo(todo.id)}><IoIosClose size={24}/></DeleteButton>
+            <DeleteButton onClick={() => deleteTodo(todo.id)}>
+              <IoIosClose size={24} />
+            </DeleteButton>
           </ListItem>
         ))}
       </TodoList>
@@ -160,7 +153,6 @@ const InputField = styled.input`
   border-radius: 8px;
   font-size: 14px;
   transition: border-color 0.3s ease;
-
   &:focus {
     border-color: #007bff;
     outline: none;
@@ -176,7 +168,6 @@ const AddButton = styled.button`
   border-radius: 8px;
   font-size: 14px;
   transition: background-color 0.3s ease;
-
   &:hover {
     background-color: #007bff;
     color: white;
@@ -205,11 +196,9 @@ const ListItem = styled.li<{ completed: boolean }>`
   margin-bottom: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-
   &:hover {
     background: ${({ completed }) => (completed ? "#c3e6cb" : "#f5c6cb")};
   }
-
   span {
     text-decoration: ${({ completed }) => (completed ? "line-through" : "none")};
     flex: 1;
@@ -219,7 +208,7 @@ const ListItem = styled.li<{ completed: boolean }>`
 `;
 
 const Checkbox = styled.input`
-  margin:0px 14px;
+  margin: 0px 14px;
 `;
 
 const DeleteButton = styled.button`
@@ -227,7 +216,6 @@ const DeleteButton = styled.button`
   cursor: pointer;
   transition: color 0.3s ease;
   border: none;
-
   &:hover {
     color: #c82333;
   }
