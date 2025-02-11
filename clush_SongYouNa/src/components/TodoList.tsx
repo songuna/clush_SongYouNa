@@ -162,7 +162,7 @@ const InputField = styled.input`
 
 const AddButton = styled.button`
   background: white;
-  color: black;
+  color: #007bff;
   border: 1px solid #ccc;
   padding: 9px 14px;
   cursor: pointer;

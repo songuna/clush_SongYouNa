@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, Modal, Input, Button, TimePicker, DatePicker, message } from "antd";
+import { Calendar, Modal, Input, Button, TimePicker, DatePicker, message, Badge } from "antd";
 import styled from "styled-components";
 import { PlusOutlined } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
@@ -7,9 +7,12 @@ import dayjs from "dayjs";
 
 interface Event {
   date: string;
+  endDate?: string;
   title: string;
   time?: string;
+  endTime?: string;
   tasks: string[];
+
 }
 
 const CalendarView: React.FC = () => {
@@ -92,6 +95,7 @@ const CalendarView: React.FC = () => {
     message.success("일정이 삭제되었습니다.");
   };
 
+
   // 날짜 셀 렌더링
   const dateCellRender = (date: Dayjs) => {
     const dailyEvents = events.filter((event) => event.date === date.format("YYYY-MM-DD"));
@@ -114,9 +118,22 @@ const CalendarView: React.FC = () => {
     );
   };
 
+  // 월별 일정 개수 렌더링
+  const monthCellRender = (date: Dayjs) => {
+    const monthlyEvents = events.filter((event) => event.date.startsWith(date.format("YYYY-MM")));
+    if (monthlyEvents.length > 0) {
+      return <Badge count={monthlyEvents.length} style={{ backgroundColor: "#40a9ff", width:"215px", borderRadius : "5px", }} />;
+    }
+    return null;
+  };
+
   return (
     <Container>
-      <Calendar dateCellRender={dateCellRender} onSelect={handleSelect} />
+       <Calendar 
+        dateCellRender={dateCellRender} 
+        monthCellRender={monthCellRender} 
+        onSelect={handleSelect} 
+      />
 
       {/* 일정 추가 모달 */}
       <Modal
@@ -144,9 +161,9 @@ const CalendarView: React.FC = () => {
           placeholder="시간 선택"
           style={{ width: "100%", marginTop: 10 }}
         />
-        <Button onClick={handleAddEvent} type="primary" style={{ marginTop: 10 }}>
+        <AddTaskButton onClick={handleAddEvent} type="primary" >
           일정 추가
-        </Button>
+        </AddTaskButton>
       </Modal>
 
       {/* 일정 상세 모달 */}
@@ -226,10 +243,10 @@ const EventItem = styled.li`
 `;
 
 const AddTaskButton = styled(Button)`
-  margin-top: 10px;
+  margin-top: 30px;
   background-color: white;
   border-color: #d9d9d9;
-  color: #000;
+  color: #40a9ff;
 
   &:hover {
     background-color: #40a9ff;
@@ -238,10 +255,10 @@ const AddTaskButton = styled(Button)`
 `;
 
 const DeleteButton = styled(Button)`
-  margin-top: 10px;
+  margin-top: 30px;
   background-color: white;
   border-color: #d9d9d9;
-  color: #000;
+  color: red;
 
   &:hover {
     background-color: red;
