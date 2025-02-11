@@ -35,21 +35,40 @@ const ToDoList: React.FC = () => {
     setTodos(todos.filter(todo => todo.id !== id));
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      addTodo();
+    }
+  };
+
+  // 오늘 날짜 구하기
+  const today = new Date();
+  const dateString = today.toISOString().split("T")[0]; // "YYYY-MM-DD" 형식
+
   return (
     <Container>
       <h2>To-Do List</h2>
+      <DateDisplay>{`오늘: ${dateString}`}</DateDisplay>
       <InputContainer>
-        <input value={input} onChange={(e) => setInput(e.target.value)} />
-        <button onClick={addTodo}>Add</button>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="할 일을 입력하세요"
+        />
+        <button onClick={addTodo}>추가</button>
       </InputContainer>
-      <ul>
         {todos.map(todo => (
           <ListItem key={todo.id} completed={todo.completed}>
-            <span onClick={() => toggleTodo(todo.id)}>{todo.text}</span>
+            <Checkbox 
+              type="checkbox" 
+              checked={todo.completed} 
+              onChange={() => toggleTodo(todo.id)} 
+            />
+            <span>{todo.text}</span>
             <button onClick={() => deleteTodo(todo.id)}>❌</button>
           </ListItem>
         ))}
-      </ul>
     </Container>
   );
 };
@@ -61,6 +80,12 @@ const Container = styled.div`
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+`;
+
+const DateDisplay = styled.div`
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #333;
 `;
 
 const InputContainer = styled.div`
@@ -85,9 +110,8 @@ const InputContainer = styled.div`
   }
 `;
 
-const ListItem = styled.li<{ completed: boolean }> `
+const ListItem = styled.li<{ completed: boolean }>`
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 8px;
   background: ${({ completed }) => (completed ? "#d4edda" : "#f8d7da")};
@@ -97,6 +121,7 @@ const ListItem = styled.li<{ completed: boolean }> `
 
   span {
     text-decoration: ${({ completed }) => (completed ? "line-through" : "none")};
+    flex: 1;
   }
 
   button {
@@ -104,4 +129,8 @@ const ListItem = styled.li<{ completed: boolean }> `
     border: none;
     cursor: pointer;
   }
+`;
+
+const Checkbox = styled.input`
+  margin-right: 10px;
 `;
