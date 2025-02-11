@@ -26,7 +26,7 @@ const ToDoList: React.FC = () => {
     if (!selectedDate || !input.trim()) {
       setErrorMessage(
         !selectedDate && !input.trim()
-          ? "날짜를 선택해 주세요 및 할 일을 입력해주세요"
+          ? "날짜와 할 일을 입력해주세요"
           : !selectedDate
           ? "날짜를 선택해 주세요"
           : "할 일을 입력해주세요"
