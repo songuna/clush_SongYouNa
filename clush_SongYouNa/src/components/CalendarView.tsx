@@ -72,6 +72,7 @@ const CalendarView: React.FC = () => {
 
     const updatedEvent: Event = {
       ...selectedEvent!,
+      date: selectedDate,
       title: eventTitle,
       tasks: selectedEvent!.tasks,
     };
@@ -179,18 +180,27 @@ const CalendarView: React.FC = () => {
         {selectedEvent && (
           <>
             <h3>{selectedEvent.title} {selectedEvent.time && `(${selectedEvent.time})`}</h3>
+
+            <DatePicker
+              value={selectedEvent ? dayjs(selectedEvent.date) : null}
+              onChange={(date) => setSelectedDate(date?.format("YYYY-MM-DD") || "")}
+              style={{ width: "100%", marginBottom: 10 }}
+              placeholder="날짜 선택"
+            />
+
             <Input
               value={eventTitle}
               onChange={(e) => setEventTitle(e.target.value)}
               placeholder="Event Title"
             />
+            
             <TimePicker
               value={eventTime}
               onChange={(time) => setEventTime(time)}
               format="HH:mm"
               style={{ width: "100%", marginTop: 10 }}
             />
-            <AddTaskButton onClick={handleUpdateEvent} type="primary">
+            <AddTaskButton onClick={handleUpdateEvent}>
               일정 수정
             </AddTaskButton>
 
@@ -199,7 +209,7 @@ const CalendarView: React.FC = () => {
                 handleDeleteEvent(selectedEvent);
                 setIsEventDetailsOpen(false); // 삭제 후 상세 모달 닫기
               }}
-              type="danger"
+              danger
               style={{ marginLeft: 10 }}
             >
               일정 삭제
