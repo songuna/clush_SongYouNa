@@ -10,7 +10,7 @@ const App: React.FC = () => {
     <Container>
       <Header>
         <TabButton active={view === "todo"} onClick={() => setView("todo")}>
-          📋 To-Do List
+          📋 To Do List
         </TabButton>
         <TabButton active={view === "calendar"} onClick={() => setView("calendar")}>
           📅 Calendar
@@ -33,7 +33,7 @@ const Container = styled.div`
   background-color: var(--color-white);
   padding: 20px;
 `;
-
+ 
 const Header = styled.div`
   display: flex;
   justify-content: space-around;

@@ -63,7 +63,7 @@ const ToDoList: React.FC = () => {
 
   return (
     <Container>
-      <h2>To-Do List</h2>
+      <h2>To Do List</h2>
       <DateDisplay>{`Today : ${today}`}</DateDisplay>
       <SelectedDateDisplay>{`Select Day : ${selectedDate}`}</SelectedDateDisplay>
       <DatePickerContainer>
