@@ -7,10 +7,8 @@ import dayjs from "dayjs";
 
 interface Event {
   date: string;
-  endDate?: string;
   title: string;
   time?: string;
-  endTime?: string;
   tasks: string[];
 
 }
@@ -23,6 +21,7 @@ const CalendarView: React.FC = () => {
   const [eventTime, setEventTime] = useState<Dayjs | null>(null);
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   // 날짜 선택 시
   const handleSelect = (date: Dayjs) => {
@@ -30,20 +29,25 @@ const CalendarView: React.FC = () => {
     if (!isEventDetailsOpen && !existingEvent) {
       setSelectedDate(date.format("YYYY-MM-DD"));
       setIsModalOpen(true);
+      setErrorMessage("");
     }
   };
 
   // 일정 추가
   const handleAddEvent = () => {
+    if (!selectedDate && !eventTitle.trim()) {
+      setErrorMessage("날짜와 일정을 입력해주세요.");
+      return;
+    }
+    if (!selectedDate) {
+      setErrorMessage("날짜를 선택해주세요.");
+      return;
+    }
     if (!eventTitle.trim()) {
-      message.error("일정 제목을 입력해주세요.");
-      return; // 제목이 없으면 일정 추가 안 함
+      setErrorMessage("일정을 입력해주세요.");
+      return;
     }
 
-    if (!selectedDate) {
-      message.error("날짜를 선택해주세요.");
-      return; // 날짜가 없으면 일정 추가 안 함
-    }
 
     const newEvent: Event = {
       date: selectedDate,
@@ -59,6 +63,7 @@ const CalendarView: React.FC = () => {
     setEventTitle("");
     setEventTime(null);
     setIsModalOpen(false); // 일정 추가 후 모달 닫기
+    setErrorMessage("");
   };
 
   // 일정 수정
@@ -137,11 +142,12 @@ const CalendarView: React.FC = () => {
 
       {/* 일정 추가 모달 */}
       <Modal
-        title="일정 추가"
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
       >
+        <h2>일정 추가</h2>
+
         {/* 날짜 선택 */}
         <DatePicker
           value={selectedDate ? dayjs(selectedDate) : null}
@@ -161,8 +167,9 @@ const CalendarView: React.FC = () => {
           placeholder="시간 선택"
           style={{ width: "100%", marginTop: 10 }}
         />
-        <AddTaskButton onClick={handleAddEvent} type="primary" >
-          일정 추가
+        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
+        <AddTaskButton onClick={handleAddEvent}>
+        일정 추가
         </AddTaskButton>
       </Modal>
 
@@ -223,6 +230,12 @@ const EventList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
+`;
+
+const ErrorMessage = styled.div`
+  color: red;
+  margin-top: 10px;
+  font-size: 14px;
 `;
 
 const EventItem = styled.li`
