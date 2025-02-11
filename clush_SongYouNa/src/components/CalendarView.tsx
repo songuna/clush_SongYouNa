@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, Modal, Input, Button, TimePicker, DatePicker, message, Badge } from "antd";
 import styled from "styled-components";
 import { PlusOutlined } from "@ant-design/icons";
@@ -22,15 +22,42 @@ const CalendarView: React.FC = () => {
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [currentMode, setCurrentMode] = useState<'month' | 'year'>("month");
+  const [currentDate, setCurrentDate] = useState(dayjs());
+
+   // 앱이 처음 렌더링될 때 로컬스토리지에서 이벤트 불러오기
+  useEffect(() => {
+    const savedEvents = localStorage.getItem('events');
+    if (savedEvents) {
+      setEvents(JSON.parse(savedEvents));
+    }
+  }, []);
 
   // 날짜 선택 시
   const handleSelect = (date: Dayjs) => {
+
+    if (currentMode === "year") {
+      setCurrentMode("month"); // 연도에서 월을 선택하면 월간 뷰로 변경
+      setCurrentDate(date); // 해당 월을 중앙에 표시
+      return;
+    }
+
     const existingEvent = events.find((event) => event.date === date.format("YYYY-MM-DD"));
-    if (!isEventDetailsOpen && !existingEvent) {
+    if (!isEventDetailsOpen && !existingEvent && currentMode === "month") {
       setSelectedDate(date.format("YYYY-MM-DD"));
       setIsModalOpen(true);
       setErrorMessage("");
     }
+  };
+
+  // 월간 뷰에서 연도 및 월 선택 시
+  const handlePanelChange = (date: Dayjs, mode: 'month' | 'year') => {
+    setCurrentMode(mode);
+    setCurrentDate(date); // 선택한 연도나 월로 이동
+
+     if (mode === "month" || mode === "year") {
+    setIsModalOpen(false); // 모달 닫기
+  }
   };
 
   // 일정 추가
@@ -58,6 +85,11 @@ const CalendarView: React.FC = () => {
     if (eventTime) {
       newEvent.time = eventTime.format("HH:mm"); // 시간을 선택했으면 추가
     }
+
+    // 새로운 이벤트를 state에 추가하고, localStorage에도 저장
+    const updatedEvents = [...events, newEvent];
+    setEvents(updatedEvents);
+    localStorage.setItem('events', JSON.stringify(updatedEvents)); // localStorage에 저장
 
     setEvents([...events, newEvent]);
     setEventTitle("");
@@ -97,7 +129,9 @@ const CalendarView: React.FC = () => {
 
   // 일정 삭제
   const handleDeleteEvent = (eventToDelete: Event) => {
-    setEvents(events.filter((event) => event !== eventToDelete));
+   const updatedEvents = events.filter((event) => event !== eventToDelete);
+    setEvents(updatedEvents);
+    saveEventsToLocalStorage(updatedEvents); // 삭제된 후 로컬스토리지에 업데이트
     message.success("일정이 삭제되었습니다.");
   };
 
@@ -135,10 +169,13 @@ const CalendarView: React.FC = () => {
 
   return (
     <Container>
+      <H1>{currentDate.format("YYYY년 MM월")}</H1>
        <Calendar 
         dateCellRender={dateCellRender} 
         monthCellRender={monthCellRender} 
         onSelect={handleSelect} 
+        mode={currentMode}
+        onPanelChange={handlePanelChange}
       />
 
       {/* 일정 추가 모달 */}
@@ -234,6 +271,12 @@ const Container = styled.div`
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+`;
+
+const H1 = styled.h1`
+  text-align: center;
+  margin-bottom: 20px;
+  color: #40a9ff;
 `;
 
 const EventList = styled.ul`
