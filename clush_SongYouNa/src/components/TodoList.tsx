@@ -26,7 +26,7 @@ const ToDoList: React.FC = () => {
     if (!selectedDate || !input.trim()) {
       setErrorMessage(
         !selectedDate && !input.trim()
-          ? "날짜와 할 일을 입력해주세요"
+          ? "날짜를 선택해 주세요 및 할 일을 입력해주세요"
           : !selectedDate
           ? "날짜를 선택해 주세요"
           : "할 일을 입력해주세요"
@@ -191,13 +191,13 @@ const ListItem = styled.li<{ completed: boolean }>`
   display: flex;
   align-items: center;
   padding: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid ${({ completed }) => (completed ? "#007bff" : "#ccc")};
   border-radius: 8px;
   margin-bottom: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   &:hover {
-    background: ${({ completed }) => (completed ? "#c3e6cb" : "#f5c6cb")};
+    background: ${({ completed }) => (completed ? "#90c6ff" : "#f5c6cb")};
   }
   span {
     text-decoration: ${({ completed }) => (completed ? "line-through" : "none")};
