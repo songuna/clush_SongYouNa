@@ -5,7 +5,6 @@ import type { Dayjs } from "dayjs";
 import moment from "moment"; // DatePicker에 필요한 moment 사용
 import { IoIosClose } from "react-icons/io";
 
-
 interface ToDo {
   id: number;
   text: string;
@@ -17,15 +16,29 @@ const ToDoList: React.FC = () => {
   const [todos, setTodos] = useState<ToDo[]>(JSON.parse(localStorage.getItem("todos") || "[]"));
   const [input, setInput] = useState("");
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState(""); // 에러 메시지 상태 추가
 
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
   }, [todos]);
 
   const addTodo = () => {
-    if (!input.trim() || !selectedDate) return; // 날짜가 선택되지 않으면 추가하지 않음
+    if (!selectedDate && !input.trim()) {
+      setErrorMessage("날짜와 할 일을 입력해주세요");
+      return;
+    }
+    if (!selectedDate) {
+      setErrorMessage("날짜를 선택해 주세요");
+      return;
+    }
+    if (!input.trim()) {
+      setErrorMessage("할 일을 입력해주세요");
+      return;
+    }
+    
     setTodos([...todos, { id: Date.now(), text: input, completed: false, date: selectedDate }]);
     setInput("");
+    setErrorMessage(""); // 에러 메시지 초기화
   };
 
   const toggleTodo = (id: number) => {
@@ -46,36 +59,30 @@ const ToDoList: React.FC = () => {
     }
   };
 
-  // 날짜를 선택했을 때 호출되는 함수
   const onDateSelect = (date: Dayjs | null) => {
     if (date) {
       setSelectedDate(date.format("YYYY-MM-DD"));
+      setErrorMessage(""); // 날짜 선택 시 에러 메시지 제거
     }
   };
 
-  // 오늘 날짜 구하기
   const today = new Date();
-  const dateString = today.toISOString().split("T")[0]; // "YYYY-MM-DD" 형식
-
-  // 선택된 날짜에 해당하는 할 일들만 필터링
+  const dateString = today.toISOString().split("T")[0];
   const filteredTodos = todos.filter(todo => todo.date === selectedDate);
 
   return (
     <Container>
       <h2>To-Do List</h2>
-      <DateDisplay>{`오늘 날짜 : ${dateString}`}</DateDisplay>
-      
+      <DateDisplay>{`Today : ${dateString}`}</DateDisplay>
+      <SelectedDateDisplay>{`Select Day : ${selectedDate}`}</SelectedDateDisplay>
       <DatePickerContainer>
         <DatePickerStyled
-          value={selectedDate ? moment(selectedDate) : null} // 선택된 날짜를 DatePicker에 전달
+          value={selectedDate ? moment(selectedDate) : null}
           onChange={onDateSelect}
           format="YYYY-MM-DD"
           placeholder="날짜 선택"
         />
       </DatePickerContainer>
-
-      <SelectedDateDisplay>{`선택된 날짜: ${selectedDate}`}</SelectedDateDisplay>
-      
       <InputContainer>
         <InputField
           value={input}
@@ -85,7 +92,7 @@ const ToDoList: React.FC = () => {
         />
         <AddButton onClick={addTodo}>추가</AddButton>
       </InputContainer>
-
+      {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>} {/* 에러 메시지 표시 */}
       <TodoList>
         {filteredTodos.map(todo => (
           <ListItem key={todo.id} completed={todo.completed}>
@@ -117,14 +124,14 @@ const Container = styled.div`
 
 const DateDisplay = styled.div`
   font-size: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   color: #333;
 `;
 
 const SelectedDateDisplay = styled.div`
   font-size: 15px;
   margin: 10px 0px;
-  color: #555;
+  color: #007bff;
 `;
 
 const DatePickerContainer = styled.div`
@@ -135,7 +142,7 @@ const DatePickerContainer = styled.div`
 
 const DatePickerStyled = styled(DatePicker)`
   width: 100%;
-  max-width: 300px; /* DatePicker의 최대 너비 설정 */
+  max-width: 300px;
 `;
 
 const InputContainer = styled.div`
@@ -176,6 +183,13 @@ const AddButton = styled.button`
   }
 `;
 
+const ErrorMessage = styled.div`
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+`;
+
 const TodoList = styled.ul`
   list-style: none;
   padding: 0;
@@ -187,7 +201,6 @@ const ListItem = styled.li<{ completed: boolean }>`
   align-items: center;
   padding: 6px;
   border: 1px solid #ccc;
-  //background: ${({ completed }) => (completed ? "#d4edda" : "#f8d7da")};
   border-radius: 8px;
   margin-bottom: 10px;
   cursor: pointer;
@@ -219,4 +232,3 @@ const DeleteButton = styled.button`
     color: #c82333;
   }
 `;
-
