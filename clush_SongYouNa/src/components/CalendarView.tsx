@@ -11,6 +11,7 @@ interface Event {
   startTime?: string;
   endTime?: string;
   tasks: string[];
+  memo?: string;
 }
 
 const CalendarView: React.FC = () => {
@@ -25,6 +26,7 @@ const CalendarView: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [currentMode, setCurrentMode] = useState<'month' | 'year'>("month");
   const [currentDate, setCurrentDate] = useState(dayjs());
+  const [eventMemo, setEventMemo] = useState<string>(""); // 메모 상태 추가
 
   // 앱이 처음 렌더링될 때 로컬스토리지에서 이벤트 불러오기
   useEffect(() => {
@@ -47,6 +49,7 @@ const CalendarView: React.FC = () => {
       setSelectedDate(date.format("YYYY-MM-DD"));
       setIsModalOpen(true);
       setErrorMessage("");
+      resetForm();
     }
   };
 
@@ -61,24 +64,32 @@ const CalendarView: React.FC = () => {
 
   // 일정 추가
   const handleAddEvent = () => {
-    if (validateEventInput()) {
-      const newEvent: Event = createEvent();
-      const updatedEvents = [...events, newEvent];
-      updateEventsState(updatedEvents);
-    }
-  };
+  if (validateEventInput()) {
+    const newEvent: Event = createEvent();
+    const updatedEvents = [...events, newEvent];
+    updateEventsState(updatedEvents); // 새로운 일정 추가 후 폼 리셋
+  }
+};
 
-  // 일정 수정
-  const handleUpdateEvent = () => {
-    if (!eventTitle.trim()) return;
 
-    const updatedEvent: Event = { ...selectedEvent!, title: eventTitle, tasks: selectedEvent!.tasks, startTime: eventStartTime?.format("HH:mm"), endTime: eventEndTime?.format("HH:mm") };
-    const updatedEvents = events.map((event) =>
-      event.date === selectedEvent?.date && event.title === selectedEvent?.title ? updatedEvent : event
-    );
-    updateEventsState(updatedEvents);
-    setIsEventDetailsOpen(false);
+ // 일정 수정
+const handleUpdateEvent = () => {
+  if (!eventTitle.trim()) return;
+
+  const updatedEvent: Event = { 
+    ...selectedEvent!, 
+    title: eventTitle, 
+    tasks: selectedEvent!.tasks, 
+    startTime: eventStartTime?.format("HH:mm"), 
+    endTime: eventEndTime?.format("HH:mm"),
+    memo: eventMemo, // 수정된 메모 반영
   };
+  const updatedEvents = events.map((event) =>
+    event.date === selectedEvent?.date && event.title === selectedEvent?.title ? updatedEvent : event
+  );
+  updateEventsState(updatedEvents);
+  setIsEventDetailsOpen(false);
+};
 
   // 일정 삭제
   const handleDeleteEvent = (eventToDelete: Event) => {
@@ -112,14 +123,15 @@ const CalendarView: React.FC = () => {
     tasks: [],
     startTime: eventStartTime ? eventStartTime.format("HH:mm") : undefined,
     endTime: eventEndTime ? eventEndTime.format("HH:mm") : undefined,
+    memo: eventMemo, // 메모 추가
   });
 
   // 상태 업데이트 및 로컬스토리지 저장
-  const updateEventsState = (updatedEvents: Event[]) => {
-    setEvents(updatedEvents);
-    localStorage.setItem("events", JSON.stringify(updatedEvents));
-    resetForm();
-  };
+const updateEventsState = (updatedEvents: Event[]) => {
+  setEvents(updatedEvents);
+  localStorage.setItem("events", JSON.stringify(updatedEvents));
+  resetForm(); // 일정 추가 후 폼 리셋
+};
 
   // 폼 리셋
   const resetForm = () => {
@@ -128,7 +140,10 @@ const CalendarView: React.FC = () => {
     setEventEndTime(null);
     setIsModalOpen(false);
     setErrorMessage("");
+    setEventMemo("");
   };
+
+ 
 
   // 날짜 셀 렌더링
   const dateCellRender = (date: Dayjs) => {
@@ -170,6 +185,7 @@ const CalendarView: React.FC = () => {
     setEventTitle(event.title);
     setEventStartTime(event.startTime ? dayjs(event.startTime, "HH:mm") : null);
     setEventEndTime(event.endTime ? dayjs(event.endTime, "HH:mm") : null);
+    setEventMemo(event.memo || "");
   };
 
   // 시간이 지난 경우 글꼴 색상 변경
@@ -220,6 +236,14 @@ const CalendarView: React.FC = () => {
           style={{ width: "100%", marginTop: 5 }}
           placeholder="종료 시간" 
         />
+        <Input.TextArea 
+          value={eventMemo} 
+          onChange={(e) => setEventMemo(e.target.value)} 
+          placeholder="메모" 
+          rows={4} 
+          style={{ marginTop: 10 }}
+        />
+        
         {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
         <AddTaskButton onClick={handleAddEvent}>일정 추가</AddTaskButton>
       </Modal>
@@ -231,7 +255,7 @@ const CalendarView: React.FC = () => {
         <h2>일정 상세</h2>
         {selectedEvent && (
           <>
-            <h3>{selectedEvent.title} {selectedEvent.startTime && `(${selectedEvent.startTime})`}</h3>
+            <H3>{selectedEvent.title} {selectedEvent.startTime && `(${selectedEvent.startTime})`}</H3>
             <DatePicker 
               value={dayjs(selectedEvent.date)} 
               onChange={(date) => setSelectedDate(date?.format("YYYY-MM-DD") || "")} 
@@ -256,6 +280,13 @@ const CalendarView: React.FC = () => {
               format="HH:mm" 
               style={{ width: "100%", marginTop: 5 }} 
               placeholder="종료 시간"
+            />
+            <Input.TextArea 
+              value={eventMemo} 
+              onChange={(e) => setEventMemo(e.target.value)} 
+              placeholder="메모" 
+              rows={4} 
+              style={{ marginTop: 10 }}
             />
             <AddTaskButton onClick={handleUpdateEvent}>일정 수정</AddTaskButton>
             <DeleteButton onClick={() => handleDeleteEvent(selectedEvent)} danger>일정 삭제</DeleteButton>
@@ -282,6 +313,11 @@ const Container = styled.div`
 
 const H1 = styled.h1`
   text-align: center;
+  margin-bottom: 20px;
+  color: #40a9ff;
+`;
+
+const H3 = styled.h3`
   margin-bottom: 20px;
   color: #40a9ff;
 `;
